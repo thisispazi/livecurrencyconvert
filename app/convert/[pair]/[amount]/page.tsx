@@ -32,6 +32,13 @@ const CURRENCIES: Record<string, { name: string; symbol: string; flag: string }>
   KES: { name: 'Kenyan Shilling', symbol: 'KSh', flag: '🇰🇪' },
   GHS: { name: 'Ghanaian Cedi', symbol: '₵', flag: '🇬🇭' },
   BRL: { name: 'Brazilian Real', symbol: 'R$', flag: '🇧🇷' },
+  IDR: { name: 'Indonesian Rupiah', symbol: 'Rp', flag: '🇮🇩' },
+  VND: { name: 'Vietnamese Dong', symbol: '₫', flag: '🇻🇳' },
+  EGP: { name: 'Egyptian Pound', symbol: '£', flag: '🇪🇬' },
+  ZAR: { name: 'South African Rand', symbol: 'R', flag: '🇿🇦' },
+  MAD: { name: 'Moroccan Dirham', symbol: 'د.م.', flag: '🇲🇦' },
+  QAR: { name: 'Qatari Riyal', symbol: '﷼', flag: '🇶🇦' },
+  KWD: { name: 'Kuwaiti Dinar', symbol: 'د.ك', flag: '🇰🇼' },
 }
 
 const FRANKFURTER_CURRENCIES = ['EUR','USD','GBP','CHF','JPY','CAD','AUD','NZD','SEK','NOK','DKK','PLN','CZK','HUF','BGN','RON','ISK','HRK','TRY','BRL','CNY','HKD','IDR','ILS','INR','KRW','MXN','MYR','PHP','SGD','THB','ZAR']
