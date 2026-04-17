@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   },
   description: 'Free real-time currency converter. Instant exchange rates for 30+ currencies. Convert USD, EUR, GBP, AED, SAR, INR, PHP and more.',
   metadataBase: new URL('https://livecurrencyconvert.com'),
+  verification: {
+    google: 'iSGalkvzZSL8xJfivScx_TpJkULBTd_Eo50-Y07tu3c',
+  },
   openGraph: {
     siteName: 'LiveCurrencyConvert.com',
     type: 'website',
