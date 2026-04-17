@@ -25,6 +25,19 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <head>
+  <meta name="google-site-verification" content="iSGalkvzZSL8xJfivScx_TpJkULBTd_Eo50-Y07tu3c" />
+  <script
+    async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7339237018962749"
+    crossOrigin="anonymous"
+  />
+  <script
+    id="cookieyes"
+    type="text/javascript"
+    src="https://cdn-cookieyes.com/client_data/ac495fcc91ad0169c68375828a4707ba/script.js"
+  />
+</head>
         <meta name="google-site-verification" content="iSGalkvzZSL8xJfivScx_TpJkULBTd_Eo50-Y07tu3c" />
         <script
           id="cookieyes"
