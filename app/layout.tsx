@@ -22,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="google-site-verification" content="iSGalkvzZSL8xJfivScx_TpJkULBTd_Eo50-Y07tu3c" />
         <script
           id="cookieyes"
           type="text/javascript"
