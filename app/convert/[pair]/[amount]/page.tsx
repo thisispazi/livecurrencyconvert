@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import Calculator from '../Calculator'
 
 const CURRENCIES: Record<string, { name: string; symbol: string; flag: string }> = {
   USD: { name: 'US Dollar', symbol: '$', flag: '🇺🇸' },
@@ -44,23 +45,21 @@ const CURRENCIES: Record<string, { name: string; symbol: string; flag: string }>
 const FRANKFURTER_CURRENCIES = ['EUR','USD','GBP','CHF','JPY','CAD','AUD','NZD','SEK','NOK','DKK','PLN','CZK','HUF','BGN','RON','ISK','HRK','TRY','BRL','CNY','HKD','IDR','ILS','INR','KRW','MXN','MYR','PHP','SGD','THB','ZAR']
 
 async function getRate(from: string, to: string): Promise<number | null> {
+  const useFrankfurter = FRANKFURTER_CURRENCIES.includes(from) && FRANKFURTER_CURRENCIES.includes(to)
   try {
-    const res = await fetch(
-      `https://open.er-api.com/v6/latest/${from}`,
-      { next: { revalidate: 86400 } }
-    )
-    const data = await res.json()
-    return data.rates[to] ?? null
-  } catch {
-    return null
-  }
+    if (useFrankfurter) {
+      const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`, { next: { revalidate: 3600 } })
+      const data = await res.json()
+      return data.rates[to] ?? null
+    } else {
+      const res = await fetch(`https://open.er-api.com/v6/latest/${from}`, { next: { revalidate: 86400 } })
+      const data = await res.json()
+      return data.rates[to] ?? null
+    }
+  } catch { return null }
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ pair: string; amount: string }>
-}) {
+export async function generateMetadata({ params }: { params: Promise<{ pair: string; amount: string }> }) {
   const { pair, amount } = await params
   const parts = pair.split('-to-')
   if (parts.length !== 2) return {}
@@ -75,18 +74,13 @@ export async function generateMetadata({
   }
 }
 
-export default async function AmountPage({
-  params,
-}: {
-  params: Promise<{ pair: string; amount: string }>
-}) {
+export default async function AmountPage({ params }: { params: Promise<{ pair: string; amount: string }> }) {
   const { pair, amount } = await params
   const parts = pair.split('-to-')
   if (parts.length !== 2) return notFound()
 
   const from = parts[0].toUpperCase()
   const to = parts[1].toUpperCase()
-
   if (!CURRENCIES[from] || !CURRENCIES[to]) return notFound()
 
   const amountNum = parseFloat(amount)
@@ -129,31 +123,15 @@ export default async function AmountPage({
           <h1 style={{ fontSize: '36px', fontWeight: '800', marginBottom: '24px', lineHeight: '1.2' }}>
             {amountNum.toLocaleString()} {from} to {to}
           </h1>
-          <div style={{
-            background: 'rgba(255,255,255,0.15)',
-            borderRadius: '16px',
-            padding: '32px',
-            maxWidth: '480px',
-            margin: '0 auto'
-          }}>
-            {converted ? (
-              <>
-                <div style={{ fontSize: '16px', opacity: 0.85, marginBottom: '8px' }}>
-                  {amountNum.toLocaleString()} {from} =
-                </div>
-                <div style={{ fontSize: '52px', fontWeight: '800', letterSpacing: '-2px', lineHeight: '1.1' }}>
-                  {converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-                <div style={{ fontSize: '24px', fontWeight: '600', opacity: 0.9, marginBottom: '16px' }}>
-                  {to}
-                </div>
-                <div style={{ fontSize: '14px', opacity: 0.75, borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '16px' }}>
-                 1 {from} = {rate?.toFixed(4)} {to} · {FRANKFURTER_CURRENCIES.includes(from) && FRANKFURTER_CURRENCIES.includes(to) ? 'Updated hourly' : 'Updated daily'}
-                </div>
-              </>
-            ) : (
+          {rate ? (
+            <Calculator rate={rate} from={from} to={to} initialAmount={amountNum} />
+          ) : (
+            <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '16px', padding: '32px', maxWidth: '580px', margin: '0 auto' }}>
               <div style={{ fontSize: '18px' }}>Rate temporarily unavailable</div>
-            )}
+            </div>
+          )}
+          <div style={{ marginTop: '16px', fontSize: '13px', opacity: 0.7 }}>
+            ⏱ {FRANKFURTER_CURRENCIES.includes(from) && FRANKFURTER_CURRENCIES.includes(to) ? 'Updated hourly' : 'Updated daily'} · Data for informational purposes only
           </div>
         </div>
       </section>
@@ -168,32 +146,14 @@ export default async function AmountPage({
             <p style={{ color: '#64748b', textAlign: 'center', marginBottom: '32px' }}>
               Quick conversions at today&apos;s rate
             </p>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-              gap: '12px',
-              maxWidth: '800px',
-              margin: '0 auto'
-            }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px', maxWidth: '800px', margin: '0 auto' }}>
               {NEARBY_AMOUNTS.map((a) => (
                 <Link
                   key={a}
                   href={`/convert/${from.toLowerCase()}-to-${to.toLowerCase()}/${a}`}
-                  style={{
-                    display: 'block',
-                    background: 'white',
-                    color: '#1e293b',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '10px',
-                    padding: '16px',
-                    textDecoration: 'none',
-                    textAlign: 'center',
-                    fontWeight: '600'
-                  }}
+                  style={{ display: 'block', background: 'white', color: '#1e293b', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px', textDecoration: 'none', textAlign: 'center', fontWeight: '600' }}
                 >
-                  <div style={{ fontSize: '18px', marginBottom: '4px' }}>
-                    {a.toLocaleString()} {from}
-                  </div>
+                  <div style={{ fontSize: '18px', marginBottom: '4px' }}>{a.toLocaleString()} {from}</div>
                   <div style={{ fontSize: '14px', color: '#1e40af' }}>
                     = {(a * rate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {to}
                   </div>
@@ -226,16 +186,8 @@ export default async function AmountPage({
               a: `Multiply your ${from} amount by ${rate?.toFixed(4) ?? 'the current rate'}. So ${amountNum} × ${rate?.toFixed(4)} = ${converted?.toFixed(2)} ${to}.`
             },
           ].map((item, i) => (
-            <div key={i} style={{
-              background: 'white',
-              borderRadius: '12px',
-              padding: '24px',
-              marginBottom: '16px',
-              border: '1px solid #e2e8f0'
-            }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '8px', color: '#1e293b' }}>
-                {item.q}
-              </h3>
+            <div key={i} style={{ background: 'white', borderRadius: '12px', padding: '24px', marginBottom: '16px', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '8px', color: '#1e293b' }}>{item.q}</h3>
               <p style={{ color: '#64748b', fontSize: '15px', lineHeight: '1.6' }}>{item.a}</p>
             </div>
           ))}
@@ -244,10 +196,8 @@ export default async function AmountPage({
 
       {/* BACK */}
       <section style={{ padding: '32px 0', textAlign: 'center' }}>
-        <Link
-          href={`/convert/${from.toLowerCase()}-to-${to.toLowerCase()}`}
-          style={{ color: '#1e40af', textDecoration: 'none', fontWeight: '600', fontSize: '16px' }}
-        >
+        <Link href={`/convert/${from.toLowerCase()}-to-${to.toLowerCase()}`}
+          style={{ color: '#1e40af', textDecoration: 'none', fontWeight: '600', fontSize: '16px' }}>
           ← View full {from} to {to} exchange rate
         </Link>
       </section>
@@ -258,10 +208,10 @@ export default async function AmountPage({
           <p style={{ marginBottom: '16px', fontSize: '15px' }}>
             <strong style={{ color: 'white' }}>LiveCurrencyConvert.com</strong> — Free currency converter
           </p>
-          <p style={{ fontSize: '13px', marginBottom: '16px' }}>Rates updated every 24 hours</p>
+          <p style={{ fontSize: '13px', marginBottom: '16px' }}>Rates updated daily · Data for informational purposes only</p>
           <div style={{ display: 'flex', gap: '24px', justifyContent: 'center', fontSize: '13px' }}>
             <Link href="/privacy" style={{ color: '#94a3b8', textDecoration: 'none' }}>Privacy Policy</Link>
-           <Link href="/impressum" style={{ color: '#94a3b8', textDecoration: 'none' }}>Legal Notice</Link>
+            <Link href="/impressum" style={{ color: '#94a3b8', textDecoration: 'none' }}>Legal Notice</Link>
             <Link href="/about" style={{ color: '#94a3b8', textDecoration: 'none' }}>About</Link>
           </div>
         </div>
